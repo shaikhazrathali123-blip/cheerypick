@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}It's a match!{% endblock %}
+{% block body_class %}match-celebrate{% endblock %}
+{% block content %}
+<section class="its-a-match">
+  <div class="confetti" aria-hidden="true">{% for i in "123456789012" %}<i></i>{% endfor %}</div>
+  <div class="match-avatars">
+    {% include "partials/_avatar.html" with person=user size="xl" %}
+    <span class="match-cherry">{% include "partials/_logo.html" %}</span>
+    {% include "partials/_avatar.html" with person=other size="xl" %}
+  </div>
+  <h1>It's a match! 🍒</h1>
+  <p class="lead">You and {{ other.display_name }} both picked each other.</p>
+  {% if pair.reasons %}<ul class="reasons reasons-lg center-row">{% for r in pair.reasons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+  <div class="row gap wrap center-row">
+    <a class="btn btn-primary btn-lg" href="{% url 'chat:thread' match.pk %}">Say hi 👋</a>
+    <a class="btn btn-ghost btn-lg" href="{% url 'matching:deck' %}">Keep swiping</a>
+  </div>
+</section>
+{% endblock %}

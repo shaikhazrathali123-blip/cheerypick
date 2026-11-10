@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Swipe{% endblock %}
+{% block body_class %}deck-page{% endblock %}
+{% block content %}
+<div class="deck-wrap" data-deck
+     data-like-dir="{{ like_direction }}"
+     data-feed-url="{{ feed_url }}">
+  {% csrf_token %}
+  <div class="deck-head">
+    {% include "partials/_avatar.html" with person=user size="md" %}
+    <div class="deck-hello">
+      <small>Hey {{ user.display_name }} 👋</small>
+      <b>📍 {{ user.city|default:"Near you" }} · {{ user.search_radius_km }} km</b>
+    </div>
+    <a class="icon-btn" href="{% url 'matching:discover' %}" aria-label="Filters and grid view">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+    </a>
+    <a class="icon-btn" href="{% url 'matching:matches' %}" aria-label="Matches and chats">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    </a>
+  </div>
+
+  <div class="deck-stack" data-deck-stack aria-live="polite">
+    <div class="deck-empty" data-deck-empty hidden>
+      <div class="empty-emoji">🍒</div>
+      <h2>That's everyone for now</h2>
+      <p class="muted">New people join every day. Try a bigger radius, or say hi to your matches.</p>
+      <div class="row gap wrap center-row">
+        <a class="btn btn-primary" href="{% url 'matching:matches' %}">My matches</a>
+        <a class="btn btn-ghost" href="{% url 'accounts:onboarding' 'location' %}">Change radius</a>
+      </div>
+    </div>
+    <div class="deck-loading" data-deck-loading hidden><span class="spinner" aria-hidden="true"></span>Finding people…</div>
+  </div>
+
+  <p class="muted center deck-hint">
+    Swipe {{ like_direction }} to like · {% if like_direction == "left" %}right{% else %}left{% endif %} to pass<span class="hide-mobile"> · or <kbd>←</kbd> <kbd>→</kbd></span>
+  </p>
+</div>
+
+<div class="deck-match" data-deck-match hidden role="dialog" aria-modal="true" aria-labelledby="deck-match-title">
+  <div class="deck-match-inner">
+    <h2 id="deck-match-title">It's a match! 🍒</h2>
+    <p data-match-text></p>
+    <div class="deck-match-faces">
+      <span class="face" data-match-me></span>
+      <span class="face" data-match-them></span>
+    </div>
+    <a class="btn btn-primary btn-lg btn-block" data-match-chat href="#">Send a message</a>
+    <button class="btn btn-ghost btn-block" type="button" data-match-close>Keep swiping</button>
+  </div>
+</div>
+
+{{ cards|json_script:"deck-cards" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/deck.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load cheeri %}
+{% block title %}Quick Pick{% endblock %}
+{% block content %}
+<div class="quick-pick">
+  <div class="page-head center-head">
+    <h1>Quick Pick</h1>
+    <p class="muted">{% if result %}{{ remaining }} more after this one{% else %}You're all caught up{% endif %}</p>
+  </div>
+
+  {% if result %}
+  {% with p=result.user photo=result.user.main_photo %}
+  <article class="pick-card card" data-pick-card>
+    <div class="pick-media">
+      {% if photo %}<img src="{{ photo.image.url }}" alt="{{ p.display_name }}">{% else %}<span class="media-initials">{{ p.initials }}</span>{% endif %}
+      <span class="pick-stamp stamp-like">LIKE</span>
+      <span class="pick-stamp stamp-pass">NOPE</span>
+      <div class="pick-overlay">
+        {% include "partials/_match_badge.html" with r=result %}
+        <h2>{{ p.display_name }}{% if p.age %}, {{ p.age }}{% endif %} {% include "partials/_verified.html" with person=p %}</h2>
+        <p>{{ result.distance_km|km }} away · {% if p.is_host %}🏠 Has a room{% else %}🔎 Looking{% endif %}</p>
+      </div>
+    </div>
+    <div class="pick-body">
+      {% if p.bio %}<p>{{ p.bio }}</p>{% endif %}
+      <ul class="reasons">{% for reason in result.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+      {% with listing=p.active_listings.0 %}
+        {% if listing %}<p class="price">{{ listing.rent|money }}<small>/mo · {{ listing.title }}</small></p>
+        {% else %}<p class="price small">Budget {{ p.budget_min|money }}–{{ p.budget_max|money }}</p>{% endif %}
+      {% endwith %}
+      <a class="small" href="{% url 'accounts:profile' p.pk %}">See full profile →</a>
+    </div>
+  </article>
+
+  <div class="pick-actions">
+    <form method="post" action="{% url 'matching:swipe' p.pk %}" data-swipe="left">{% csrf_token %}
+      <input type="hidden" name="action" value="pass">
+      <input type="hidden" name="next" value="{% url 'matching:quick_pick' %}">
+      <button class="round-btn pass" type="submit" aria-label="Pass">✕</button>
+    </form>
+    <form method="post" action="{% url 'matching:swipe' p.pk %}" data-swipe="right">{% csrf_token %}
+      <input type="hidden" name="action" value="like">
+      <input type="hidden" name="next" value="{% url 'matching:quick_pick' %}">
+      <button class="round-btn like" type="submit" aria-label="Like">♥</button>
+    </form>
+  </div>
+  <p class="muted small center hide-mobile">Tip: use ← and → keys</p>
+  {% endwith %}
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-emoji">🍒</div>
+    <h2>That's everyone for now</h2>
+    <p class="muted">New people join daily. Widen your radius or check your matches.</p>
+    <div class="row gap wrap center-row">
+      <a class="btn btn-primary" href="{% url 'matching:matches' %}">My matches</a>
+      <a class="btn btn-ghost" href="{% url 'accounts:onboarding' 'location' %}">Change radius</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

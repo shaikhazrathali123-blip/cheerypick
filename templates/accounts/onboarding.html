@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="wizard">
+  <div class="wizard-head">
+    <div class="row between">
+      <span class="muted small">Step {{ step_number }} of {{ step_total }}</span>
+      <span class="muted small">Profile {{ user.profile_completion }}% complete</span>
+    </div>
+    <div class="progress" role="progressbar" aria-valuenow="{{ step_percent }}" aria-valuemin="0" aria-valuemax="100">
+      <span style="width: {{ step_percent }}%"></span>
+    </div>
+    <ol class="step-dots">
+      {% for s in steps %}
+        <li class="{% if s.0 == step %}is-current{% elif forloop.counter < step_number %}is-done{% endif %}">
+          <a href="{% url 'accounts:onboarding' s.0 %}" title="{{ s.1 }}">{{ forloop.counter }}</a>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <div class="card wizard-card">
+    <h1>{{ title }}</h1>
+    <p class="muted">{{ subtitle }}</p>
+
+    {% if step == "photos" %}
+      <div class="photo-grid">
+        {% for p in photos %}
+          <figure class="photo-tile">
+            <img src="{{ p.image.url }}" alt="Your photo {{ forloop.counter }}">
+            {% if forloop.first %}<span class="photo-main">Main</span>{% endif %}
+            <figcaption class="row gap-sm">
+              {% if not forloop.first %}
+              <form method="post" action="{% url 'accounts:make_main_photo' p.pk %}">{% csrf_token %}
+                <button class="btn btn-soft btn-xs" type="submit">Make main</button>
+              </form>
+              {% endif %}
+              <form method="post" action="{% url 'accounts:delete_photo' p.pk %}">{% csrf_token %}
+                <button class="btn btn-ghost btn-xs danger" type="submit">Remove</button>
+              </form>
+            </figcaption>
+          </figure>
+        {% endfor %}
+        {% if photos|length < max_photos %}
+          <div class="photo-tile is-empty">📸<small>{{ photos|length }}/{{ max_photos }}</small></div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <form method="post" {% if step == "photos" %}enctype="multipart/form-data"{% endif %} novalidate class="wizard-form">
+      {% csrf_token %}
+      {% include "partials/_form_errors.html" %}
+
+      {% if step == "location" %}
+        <button type="button" class="btn btn-soft btn-block geo-btn" data-geolocate
+                data-lat="#id_latitude" data-lon="#id_longitude" data-status="#geo-status">
+          📍 Use my location
+        </button>
+        <p id="geo-status" class="muted small center">
+          {% if user.has_location %}Location saved ✔️ (you can update it){% else %}Or just type your city below.{% endif %}
+        </p>
+      {% endif %}
+
+      {% for field in form %}{% include "partials/_field.html" %}{% endfor %}
+
+      <div class="wizard-actions">
+        {% if prev_step %}<a class="btn btn-ghost" href="{% url 'accounts:onboarding' prev_step %}">← Back</a>{% else %}<span></span>{% endif %}
+        {% if step == "photos" %}
+          <div class="row gap-sm wrap">
+            <button class="btn btn-soft" type="submit" name="action" value="upload">Upload</button>
+            <button class="btn btn-primary" type="submit" name="action" value="finish">Finish 🎉</button>
+          </div>
+        {% else %}
+          <button class="btn btn-primary" type="submit">Continue →</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

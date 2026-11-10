@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ other.display_name }}{% endblock %}
+{% block body_class %}chat-page{% endblock %}
+{% block content %}
+<div class="chat card">
+  <header class="chat-head">
+    <a class="icon-btn" href="{% url 'matching:matches' %}" aria-label="Back">←</a>
+    <a class="row gap-sm" href="{% url 'accounts:profile' other.pk %}">
+      {% include "partials/_avatar.html" with person=other size="sm" %}
+      <b>{{ other.display_name }}</b>
+      {% include "partials/_verified.html" with person=other %}
+    </a>
+  </header>
+
+  <div class="chat-body" data-chat
+       data-poll-url="{% url 'chat:poll' match.pk %}"
+       data-last-id="{{ last_id }}"
+       data-poll-ms="{{ poll_ms }}">
+    {% for m in chat_messages %}
+      <div class="bubble {% if m.sender_id == user.pk %}mine{% else %}theirs{% endif %}">
+        <p>{{ m.body|linebreaksbr }}</p><time>{{ m.created_at|time:"H:i" }}</time>
+      </div>
+    {% empty %}
+      <p class="chat-empty muted small center" data-chat-empty>You matched {{ match.created_at|timesince }} ago. Break the ice 🧊</p>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="chat-form" data-chat-form>
+    {% csrf_token %}
+    {{ form.body }}
+    <button class="btn btn-primary" type="submit">Send</button>
+  </form>
+  {% if form.body.errors %}<p class="small warn-text">{{ form.body.errors.0 }}</p>{% endif %}
+</div>
+{% endblock %}

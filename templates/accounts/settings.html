@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load cheeri %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Settings</h1>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:me' %}">View my profile</a>
+</div>
+
+<div class="grid grid-2 align-start">
+  <div class="card">
+    <div class="row gap">
+      {% include "partials/_avatar.html" with person=user size="lg" %}
+      <div>
+        <h2 class="no-margin">{{ user.display_name }} {% include "partials/_verified.html" with person=user %}</h2>
+        <p class="muted small">{{ user.email }}</p>
+      </div>
+    </div>
+    <div class="meter">
+      <div class="row between"><span>Profile completion</span><b>{{ user.profile_completion }}%</b></div>
+      <div class="progress"><span style="width: {{ user.profile_completion }}%"></span></div>
+      {% if user.profile_completion < MIN_COMPLETION %}
+        <p class="small warn-text">You're hidden from Discover until you hit {{ MIN_COMPLETION }}%.</p>
+      {% else %}<p class="small muted">{{ user.completion_label }}</p>{% endif %}
+      {% if missing %}<p class="small muted">Still missing: {{ missing|join:", " }}</p>{% endif %}
+    </div>
+    <div class="meter">
+      <div class="row between"><span>Serious score</span><b>{{ user.trust_score }} · {{ trust_label }}</b></div>
+      <div class="progress progress-green"><span style="width: {{ user.trust_score }}%"></span></div>
+      <p class="small muted">Goes up with a complete profile, verification, replying to chats and account age.</p>
+    </div>
+    <h3>Edit profile</h3>
+    <div class="link-list">
+      {% for s in steps %}<a href="{% url 'accounts:onboarding' s.0 %}">{{ s.1 }} <span>→</span></a>{% endfor %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <h2>Role</h2>
+      <p class="muted small">Switch any time — hosts can post rooms, seekers can't (yet).</p>
+      <form method="post" class="stack">{% csrf_token %}
+        <input type="hidden" name="action" value="role">
+        {% for field in role_form %}{% include "partials/_field.html" %}{% endfor %}
+        <button class="btn btn-primary btn-sm" type="submit">Save role</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Verification</h2>
+      <ul class="checklist">
+        <li class="{% if user.email_verified %}ok{% endif %}">Email {% if user.email_verified %}verified ✅{% else %}not verified{% endif %}</li>
+        <li class="{% if user.main_photo %}ok{% endif %}">Photo {% if user.main_photo %}added ✅{% else %}missing{% endif %}</li>
+        <li class="{% if user.phone_verified %}ok{% endif %}">Phone {% if user.phone_verified %}verified ✅{% else %}optional{% endif %}</li>
+      </ul>
+      {% if not user.email_verified %}
+      <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'accounts:settings' %}">
+        <button class="btn btn-soft btn-sm" type="submit">Resend verification email</button>
+      </form>
+      {% endif %}
+      {% if not user.phone_verified %}
+      <form method="post" class="stack">{% csrf_token %}
+        <input type="hidden" name="action" value="send_otp">
+        {% for field in phone_form %}{% include "partials/_field.html" %}{% endfor %}
+        <button class="btn btn-soft btn-sm" type="submit">Send code</button>
+      </form>
+      {% if user.phone %}
+      <form method="post" class="stack">{% csrf_token %}
+        <input type="hidden" name="action" value="verify_otp">
+        {% for field in otp_form %}{% include "partials/_field.html" %}{% endfor %}
+        <button class="btn btn-primary btn-sm" type="submit">Verify phone</button>
+      </form>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="card app-card">
+      <h2>App & notifications</h2>
+      <div class="app-row">
+        <span class="app-row-icon">📲</span>
+        <div>
+          <b>Install CheeriPick</b>
+          <p class="muted small" data-install-ios hidden>On iPhone: tap <b>Share</b> <span aria-hidden="true">⎋</span> then <b>Add to Home Screen</b>.</p>
+          <p class="muted small" data-installed hidden>Installed. You're using the app ✨</p>
+          <p class="muted small" data-install-fallback>Open it like a real app from your home screen, full-screen and offline-ready.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" data-install hidden>Install</button>
+      </div>
+      <div class="app-row">
+        <span class="app-row-icon">🔔</span>
+        <div>
+          <b>Push notifications</b>
+          <p class="muted small" data-push-status>Checking…</p>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" data-push-toggle hidden>Turn on notifications</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" type="button" data-push-test hidden>Send me a test notification</button>
+    </div>
+
+    <div class="card">
+      <h2>Appearance</h2>
+      <button class="btn btn-ghost btn-sm" type="button" data-theme-toggle>Toggle light / dark 🌗</button>
+    </div>
+
+    <div class="card">
+      <h2>Blocked</h2>
+      {% for b in blocked %}
+        <div class="row between">
+          <span>{{ b.blocked.display_name }}</span>
+          <form method="post" action="{% url 'accounts:unblock' b.blocked_id %}">{% csrf_token %}
+            <button class="btn btn-ghost btn-xs" type="submit">Unblock</button>
+          </form>
+        </div>
+      {% empty %}<p class="muted small">Nobody. Love that for you.</p>{% endfor %}
+    </div>
+
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+      <button class="btn btn-ghost btn-block" type="submit">Log out</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

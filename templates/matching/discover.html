@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Discover{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Discover</h1>
+    <p class="muted">{{ total }} people within {{ radius }} km who fit your vibe</p>
+  </div>
+  <a class="btn btn-primary btn-sm" href="{% url 'matching:deck' %}">Swipe mode 🍒</a>
+</div>
+
+<div class="discover-layout">
+  <details class="filters card" {% if form.is_bound %}open{% endif %} data-filters>
+    <summary><span>Filters</span><span class="muted small">tap to {% if form.is_bound %}hide{% else %}show{% endif %}</span></summary>
+    <form method="get" class="filter-form">
+      {% include "partials/_field.html" with field=form.radius %}
+      <div class="field-pair">
+        {% include "partials/_field.html" with field=form.budget_min %}
+        {% include "partials/_field.html" with field=form.budget_max %}
+      </div>
+      {% include "partials/_field.html" with field=form.move_in %}
+      {% include "partials/_field.html" with field=form.role %}
+      {% include "partials/_field.html" with field=form.room_type %}
+      {% include "partials/_field.html" with field=form.verified_only %}
+      {% include "partials/_field.html" with field=form.has_photos %}
+      {% include "partials/_field.html" with field=form.sort %}
+      <div class="row gap-sm">
+        <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+        <a class="btn btn-ghost btn-sm" href="{% url 'matching:discover' %}">Reset</a>
+      </div>
+    </form>
+  </details>
+
+  <section>
+    {% if page.object_list %}
+      <div class="grid grid-cards">
+        {% for r in page %}
+          {% include "partials/_profile_card.html" with r=r liked=r.liked %}
+        {% endfor %}
+      </div>
+
+      {% if page.has_other_pages %}
+      <nav class="pagination" aria-label="Pages">
+        {% if page.has_previous %}<a class="btn btn-ghost btn-sm" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page.previous_page_number }}">← Prev</a>{% endif %}
+        <span class="muted small">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a class="btn btn-ghost btn-sm" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page.next_page_number }}">Next →</a>{% endif %}
+      </nav>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-emoji">🔭</div>
+        <h2>No one here… yet</h2>
+        <p class="muted">Try a bigger radius, a wider budget, or fewer dealbreakers.</p>
+        <a class="btn btn-ghost" href="{% url 'accounts:onboarding' 'interests' %}">Edit dealbreakers</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{# usage: {% include "partials/_avatar.html" with person=user size="md" %} #}
+{% with photo=person.main_photo %}
+<span class="avatar avatar-{{ size|default:'md' }}">
+  {% if photo %}<img src="{{ photo.image.url }}" alt="{{ person.display_name }}" loading="lazy">
+  {% else %}<span>{{ person.initials }}</span>{% endif %}
+</span>
+{% endwith %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}My matches{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Matches</h1>
+    <p class="muted">{{ rows|length }} mutual pick{{ rows|length|pluralize }}{% if likes_you %} · <b>{{ likes_you }}</b> {{ likes_you|pluralize:"person likes,people like" }} you — keep swiping to find them 👀{% endif %}</p>
+  </div>
+</div>
+
+{% if rows %}
+<ul class="chat-list card">
+  {% for row in rows %}
+  <li>
+    <a href="{% url 'chat:thread' row.match.pk %}" class="chat-row{% if row.match.unread %} is-unread{% endif %}">
+      {% include "partials/_avatar.html" with person=row.other size="md" %}
+      <div class="chat-row-text">
+        <div class="row between">
+          <b>{{ row.other.display_name }}</b>
+          <span class="muted small">{% if row.match.last_at %}{{ row.match.last_at|timesince }} ago{% else %}matched {{ row.match.created_at|timesince }} ago{% endif %}</span>
+        </div>
+        <p class="muted small ellipsis">{% if row.match.last_body %}{{ row.match.last_body }}{% else %}New match! Say hi 👋{% endif %}</p>
+      </div>
+      {% if row.match.unread %}<span class="count-badge">{{ row.match.unread }}</span>{% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state">
+  <div class="empty-emoji">💌</div>
+  <h2>No matches yet</h2>
+  <p class="muted">Like a few people — when it's mutual, they'll show up here.</p>
+  <a class="btn btn-primary" href="{% url 'matching:deck' %}">Start swiping</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Find your people{% endblock %}
+{% block body_class %}landing{% endblock %}
+{% block main_class %}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <span class="pill pill-soft">🍒 Roommate matching, minus the chaos</span>
+      <h1>Find your<br><span class="text-gradient">perfect</span> roomie.</h1>
+      <p class="lead">Swipe on people whose vibe actually fits: sleep schedule, tidiness, budget, the works. Chat only when it's mutual.</p>
+      <div class="hero-cta">
+        <a class="slide-cta" href="{% url 'accounts:signup' %}">
+          <span class="knob" aria-hidden="true">♥</span>
+          Get started
+          <span class="chev" aria-hidden="true">›››</span>
+        </a>
+        <a class="btn btn-ghost btn-lg" href="{% url 'accounts:login' %}">Log in</a>
+      </div>
+      <p class="muted small">Free · 18+ · About 3 minutes to set up</p>
+      <div class="stats">
+        <div><b>45%</b><span>of the score is lifestyle fit</span></div>
+        <div><b>0</b><span>cold DMs, ever</span></div>
+        <div><b>3 min</b><span>to your first match</span></div>
+      </div>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <div class="hero-card hc-1">
+        <div class="hc-photo">RI</div>
+        <span class="match-badge tone-solid"><b>86%</b></span>
+        <div class="hc-info"><b>Riya, 24</b><small>Both night owls 🌙</small></div>
+      </div>
+      <div class="hero-card hc-2">
+        <div class="hc-photo">KA</div>
+        <span class="match-badge tone-twins"><b>94%</b></span>
+        <div class="hc-info"><b>Kabir, 26</b><small>1.2 km away · Has a room</small></div>
+      </div>
+      <span class="hero-float hf-1">💬</span>
+      <span class="hero-float hf-2">♥</span>
+      <span class="hero-float hf-3">✨</span>
+      <div class="hero-chip"><span class="dot">✓</span>It's a match with Kabir!</div>
+    </div>
+  </div>
+</section>
+
+<section class="container section">
+  <div class="grid grid-3">
+    <div class="card feature">
+      <div class="feature-icon">💯</div>
+      <h3>Vibe-first matching</h3>
+      <p class="muted">We score sleep, tidiness, noise, food, pets and more, then tell you exactly why you clicked.</p>
+    </div>
+    <div class="card feature">
+      <div class="feature-icon">🛡️</div>
+      <h3>No time-wasters</h3>
+      <p class="muted">Verified emails, a serious score, auto-hidden ghost profiles, and report/block on every profile.</p>
+    </div>
+    <div class="card feature">
+      <div class="feature-icon">💬</div>
+      <h3>Chat only when it's mutual</h3>
+      <p class="muted">Both people swipe right first. Then you talk. No cold-DM spam, ever.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container section">
+  <h2 class="center section-title">How it works</h2>
+  <ol class="steps">
+    <li><b>1</b><span>Build your profile: your vibe, budget, move-in date.</span></li>
+    <li><b>2</b><span>Swipe right on people nearby who fit.</span></li>
+    <li><b>3</b><span>Match, chat, and go see the place together.</span></li>
+  </ol>
+  <div class="center"><a class="btn btn-primary btn-lg" href="{% url 'accounts:signup' %}">Start swiping 🍒</a></div>
+</section>
+{% endblock %}

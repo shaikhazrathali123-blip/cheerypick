@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit listing{% else %}New listing{% endif %}{% endblock %}
+{% block content %}
+<div class="narrow">
+  <div class="page-head">
+    <h1>{% if is_edit %}Edit listing{% else %}Post a room 🏠{% endif %}</h1>
+    {% if is_edit %}<a class="btn btn-ghost btn-sm" href="{% url 'listings:detail' listing.pk %}">View</a>{% endif %}
+  </div>
+
+  {% if is_edit and listing.photos.all %}
+  <div class="card">
+    <h2>Photos</h2>
+    <div class="photo-grid">
+      {% for p in listing.photos.all %}
+      <figure class="photo-tile">
+        <img src="{{ p.image.url }}" alt="Listing photo {{ forloop.counter }}">
+        <figcaption>
+          <form method="post" action="{% url 'listings:photo_delete' p.pk %}">{% csrf_token %}
+            <button class="btn btn-ghost btn-xs danger" type="submit">Remove</button>
+          </form>
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="card stack" novalidate>
+    {% csrf_token %}
+    {% include "partials/_form_errors.html" %}
+    {% include "partials/_field.html" with field=form.title %}
+    {% include "partials/_field.html" with field=form.description %}
+    <div class="field-pair">
+      {% include "partials/_field.html" with field=form.rent %}
+      {% include "partials/_field.html" with field=form.deposit %}
+    </div>
+    {% include "partials/_field.html" with field=form.room_type %}
+    {% include "partials/_field.html" with field=form.furnished %}
+    {% include "partials/_field.html" with field=form.amenities %}
+    {% include "partials/_field.html" with field=form.available_from %}
+    {% include "partials/_field.html" with field=form.address %}
+    {{ form.latitude }}{{ form.longitude }}
+    <button type="button" class="btn btn-soft btn-sm" data-geolocate data-lat="#id_latitude" data-lon="#id_longitude" data-status="#geo-status">📍 Pin the room at my current location</button>
+    <p id="geo-status" class="muted small">{% if form.latitude.value %}Pinned ✔️{% else %}If you skip this we'll use your profile location.{% endif %}</p>
+    {% include "partials/_field.html" with field=form.house_rules %}
+    {% include "partials/_field.html" with field=form.new_photos %}
+    <div class="row gap-sm">
+      <button class="btn btn-primary" type="submit">{% if is_edit %}Save changes{% else %}Publish{% endif %}</button>
+      <a class="btn btn-ghost" href="{% url 'listings:mine' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

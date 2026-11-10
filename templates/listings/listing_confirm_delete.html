@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Delete listing{% endblock %}
+{% block content %}
+<div class="empty-state">
+  <div class="empty-emoji">🗑️</div>
+  <h1>Delete “{{ listing.title }}”?</h1>
+  <p class="muted">This can't be undone. If you just need a break, pausing hides it without losing anything.</p>
+  <div class="row gap wrap center-row">
+    <form method="post">{% csrf_token %}<button class="btn btn-primary" type="submit">Yes, delete it</button></form>
+    <form method="post" action="{% url 'listings:toggle' listing.pk %}">{% csrf_token %}
+      {% if listing.is_active %}<button class="btn btn-ghost" type="submit">Just pause it</button>{% endif %}
+    </form>
+    <a class="btn btn-ghost" href="{% url 'listings:mine' %}">Cancel</a>
+  </div>
+</div>
+{% endblock %}

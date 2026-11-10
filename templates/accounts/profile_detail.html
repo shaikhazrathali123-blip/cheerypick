@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load cheeri %}
+{% block title %}{{ profile.display_name }}{% endblock %}
+{% block content %}
+<div class="profile-layout">
+  <section class="profile-gallery">
+    {% with photos=profile.photo_list %}
+      {% if photos %}
+        <div class="gallery" data-gallery>
+          {% for p in photos %}<img src="{{ p.image.url }}" alt="{{ profile.display_name }} photo {{ forloop.counter }}" loading="lazy">{% endfor %}
+        </div>
+        {% if photos|length > 1 %}<p class="muted small center">Swipe for more photos →</p>{% endif %}
+      {% else %}
+        <div class="gallery gallery-empty"><span class="media-initials">{{ profile.initials }}</span></div>
+      {% endif %}
+    {% endwith %}
+  </section>
+
+  <section class="profile-info">
+    <div class="card">
+      <div class="row between wrap gap-sm">
+        <h1 class="profile-name">
+          {{ profile.display_name }}{% if profile.age %}, {{ profile.age }}{% endif %}
+          {% include "partials/_verified.html" with person=profile %}
+        </h1>
+        {% if pair %}{% include "partials/_match_badge.html" with r=pair %}{% endif %}
+      </div>
+      <p class="muted">
+        {% if profile.pronouns %}{{ profile.pronouns }} · {% endif %}{{ profile.get_occupation_display }} · {{ profile.city }}
+        {% if pair and pair.distance_km is not None %} · {{ pair.distance_km|km }} away{% endif %}
+      </p>
+      <div class="row gap-sm wrap">
+        <span class="pill role-{{ profile.role }}">{% if profile.is_host %}🏠 Has a room{% else %}🔎 Looking for a room{% endif %}</span>
+        <span class="pill trust-{{ profile.trust_score|trust_tone }}" title="Serious score: completeness, verification, chat replies, account age">
+          Serious score {{ profile.trust_score }} · {{ trust_label }}
+        </span>
+        {% if profile.phone_verified %}<span class="pill pill-soft">📱 Phone verified</span>{% endif %}
+      </div>
+      {% if profile.bio %}<p class="bio">{{ profile.bio }}</p>{% endif %}
+
+      {% if pair %}
+        {% if pair.failures %}
+          <div class="alert alert-warn">
+            <b>Heads up — not in your matches because:</b>
+            <ul>{% for f in pair.failures %}<li>{{ f }}</li>{% endfor %}</ul>
+          </div>
+        {% elif pair.reasons %}
+          <ul class="reasons reasons-lg">{% for reason in pair.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+        {% endif %}
+        <details class="breakdown">
+          <summary>How we scored this</summary>
+          <ul class="bars">
+            {% for key, val in pair.breakdown_percent.items %}
+              <li><span>{{ key|capfirst }}</span><span class="bar"><i style="width: {{ val }}%"></i></span><b>{{ val }}%</b></li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% endif %}
+
+      {% if is_me %}
+        <div class="row gap-sm wrap">
+          <a class="btn btn-primary" href="{% url 'accounts:onboarding_start' %}">Edit profile</a>
+          <a class="btn btn-ghost" href="{% url 'accounts:settings' %}">Settings</a>
+        </div>
+      {% else %}
+        <div class="action-row">
+          {% if match %}
+            <a class="btn btn-primary btn-lg" href="{% url 'chat:thread' match.pk %}">💬 Message</a>
+          {% else %}
+            <form method="post" action="{% url 'matching:swipe' profile.pk %}">{% csrf_token %}
+              <input type="hidden" name="action" value="pass">
+              <input type="hidden" name="next" value="{% url 'matching:discover' %}">
+              <button class="btn btn-ghost btn-lg" type="submit">Pass</button>
+            </form>
+            {% if my_swipe and my_swipe.action == "like" %}
+              <span class="pill pill-soft">You liked them 💖</span>
+            {% else %}
+            <form method="post" action="{% url 'matching:swipe' profile.pk %}">{% csrf_token %}
+              <input type="hidden" name="action" value="like">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button class="btn btn-primary btn-lg" type="submit">Like 💖</button>
+            </form>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>The vibe</h2>
+      <dl class="vibe-grid">
+        {% for label, value, field in vibe_rows %}
+          <div class="{% if field in profile.dealbreakers %}is-dealbreaker{% endif %}">
+            <dt>{{ label }}</dt><dd>{{ value }}{% if field == "cleanliness" or field == "noise_tolerance" %}/5{% endif %}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+      {% if profile.dealbreakers %}
+        <p class="small muted">🚫 Dealbreakers: {% for d in profile.dealbreakers %}{{ d|vibe_label }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Money & timing</h2>
+      <dl class="vibe-grid">
+        <div><dt>Budget</dt><dd>{{ profile.budget_min|money }} – {{ profile.budget_max|money }}</dd></div>
+        <div><dt>Move-in</dt><dd>{{ profile.move_in_date|date:"j M Y"|default:"Flexible" }}</dd></div>
+        <div><dt>Stay</dt><dd>{% if profile.stay_months %}{{ profile.stay_months }} months{% else %}—{% endif %}</dd></div>
+        <div><dt>Roomie gender</dt><dd>{{ profile.get_preferred_gender_display }}{% if profile.preferred_gender_value %} ({{ profile.get_preferred_gender_value_display }}){% endif %}</dd></div>
+      </dl>
+    </div>
+
+    {% if profile.interests.all %}
+    <div class="card">
+      <h2>Into</h2>
+      <div class="tags">{% for i in profile.interests.all %}<span class="tag">{{ i.emoji }} {{ i.name }}</span>{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    {% if listings %}
+    <div class="card">
+      <h2>{% if is_me %}Your rooms{% else %}Their room{{ listings|length|pluralize }}{% endif %}</h2>
+      <div class="grid grid-2">{% for l in listings %}{% include "partials/_listing_card.html" with listing=l owner=is_me %}{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    {% if not is_me %}
+    <div class="card safety">
+      <h2>Safety</h2>
+      <div class="row gap-sm wrap">
+        {% if already_reported %}
+          <span class="pill pill-soft">Reported — thanks 🛡️</span>
+        {% else %}
+        <details class="inline-details">
+          <summary class="btn btn-ghost btn-sm">🚩 Report</summary>
+          <form method="post" action="{% url 'accounts:report' profile.pk %}" class="stack">{% csrf_token %}
+            {% for field in report_form %}{% include "partials/_field.html" %}{% endfor %}
+            <button class="btn btn-primary btn-sm" type="submit">Send report</button>
+          </form>
+        </details>
+        {% endif %}
+        <details class="inline-details">
+          <summary class="btn btn-ghost btn-sm danger">⛔ Block</summary>
+          <form method="post" action="{% url 'accounts:block' profile.pk %}" class="stack">{% csrf_token %}
+            <p class="small">You won't see each other anywhere, and any match/chat is removed. Sure?</p>
+            <button class="btn btn-primary btn-sm" type="submit">Yes, block {{ profile.display_name }}</button>
+          </form>
+        </details>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load cheeri %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="narrow">
+  <div class="page-head">
+    <div>
+      <h1>Notifications</h1>
+      <p class="muted">Matches, messages and likes, all in one place.</p>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'accounts:settings' %}">Settings</a>
+  </div>
+
+  <div class="push-nudge card" data-push-nudge hidden>
+    <span class="app-row-icon">🔔</span>
+    <div>
+      <b>Never miss a match</b>
+      <p class="muted small no-margin">Get notified on this device, even when CheeriPick is closed.</p>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-push-toggle hidden>Turn on</button>
+  </div>
+
+  {% if items %}
+  <ul class="notif-list card">
+    {% for n in items %}
+    <li>
+      <a class="notif-row{% if n.is_unread %} is-unread{% endif %}" href="{% url 'notifications:open' n.pk %}">
+        <span class="notif-icon notif-{{ n.kind }}" aria-hidden="true">{{ n.icon }}</span>
+        <span class="notif-text">
+          <b>{{ n.title }}</b>
+          {% if n.body %}<span class="muted small">{{ n.body }}</span>{% endif %}
+        </span>
+        <time class="muted small" datetime="{{ n.created_at|date:'c' }}">{{ n.created_at|ago }}</time>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-emoji">🔔</div>
+    <h2>All quiet for now</h2>
+    <p class="muted">When someone likes you, matches with you or sends a message, it shows up here.</p>
+    <a class="btn btn-primary" href="{% url 'matching:deck' %}">Start swiping</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

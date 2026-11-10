@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-logo">{% include "partials/_logo.html" %}</div>
+    <h1>Welcome back</h1>
+    <p class="muted">Your matches missed you 🍒</p>
+    {% include "partials/_google_button.html" %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "partials/_form_errors.html" %}
+      {% for field in form %}{% include "partials/_field.html" %}{% endfor %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary btn-block" type="submit">Log in</button>
+    </form>
+    <p class="muted small center">New here? <a href="{% url 'accounts:signup' %}">Make an account</a></p>
+  </div>
+</div>
+{% endblock %}

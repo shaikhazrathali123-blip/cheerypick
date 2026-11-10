@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load cheeri %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block content %}
+<div class="profile-layout">
+  <section class="profile-gallery">
+    {% with photos=listing.photos.all %}
+      {% if photos %}
+        <div class="gallery" data-gallery>{% for p in photos %}<img src="{{ p.image.url }}" alt="{{ listing.title }} photo {{ forloop.counter }}" loading="lazy">{% endfor %}</div>
+      {% else %}<div class="gallery gallery-empty"><span class="media-initials">🏠</span></div>{% endif %}
+    {% endwith %}
+  </section>
+
+  <section class="profile-info">
+    <div class="card">
+      {% if not listing.is_active %}<span class="pill pill-soft">⏸️ Paused — only you can see this</span>{% endif %}
+      <h1>{{ listing.title }}</h1>
+      <p class="muted">{{ listing.address }}</p>
+      <p class="price big">{{ listing.rent|money }}<small>/month</small></p>
+      <dl class="vibe-grid">
+        <div><dt>Deposit</dt><dd>{{ listing.deposit|money }}</dd></div>
+        <div><dt>Room</dt><dd>{{ listing.get_room_type_display }}</dd></div>
+        <div><dt>Furnishing</dt><dd>{{ listing.get_furnished_display }}</dd></div>
+        <div><dt>Available</dt><dd>{{ listing.available_from|date:"j M Y" }}</dd></div>
+      </dl>
+      {% if is_owner %}
+        <div class="row gap-sm wrap">
+          <a class="btn btn-primary" href="{% url 'listings:edit' listing.pk %}">Edit</a>
+          <form method="post" action="{% url 'listings:toggle' listing.pk %}">{% csrf_token %}
+            <button class="btn btn-ghost" type="submit">{% if listing.is_active %}Pause{% else %}Go live{% endif %}</button>
+          </form>
+          <a class="btn btn-ghost danger" href="{% url 'listings:delete' listing.pk %}">Delete</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>About the place</h2>
+      <p>{{ listing.description|linebreaksbr }}</p>
+      {% if listing.amenities.all %}
+        <div class="tags">{% for a in listing.amenities.all %}<span class="tag">{{ a.emoji }} {{ a.name }}</span>{% endfor %}</div>
+      {% endif %}
+    </div>
+
+    {% if listing.house_rules %}
+    <div class="card"><h2>House rules</h2><p>{{ listing.house_rules|linebreaksbr }}</p></div>
+    {% endif %}
+
+    {% if not is_owner %}
+    <div class="card">
+      <h2>Your host</h2>
+      <a class="row gap" href="{% url 'accounts:profile' listing.host.pk %}">
+        {% include "partials/_avatar.html" with person=listing.host size="md" %}
+        <div><b>{{ listing.host.display_name }}</b> {% include "partials/_verified.html" with person=listing.host %}<br><span class="muted small">See their vibe & match score →</span></div>
+      </a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

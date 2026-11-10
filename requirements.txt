@@ -1,0 +1,6 @@
+Django>=5.1,<5.3
+Pillow>=10.4
+python-dotenv>=1.0
+pywebpush>=2.0         # Web Push notifications
+# PostgreSQL driver — uncomment when DB_ENGINE=postgres
+# psycopg[binary]>=3.2

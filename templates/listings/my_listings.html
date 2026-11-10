@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}My rooms{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>My rooms</h1>
+    <p class="muted">Show off your space — good photos = better roomies.</p>
+  </div>
+  {% if user.is_host %}<a class="btn btn-primary btn-sm" href="{% url 'listings:create' %}">+ New listing</a>{% endif %}
+</div>
+{% if listings %}
+  <div class="grid grid-cards">{% for l in listings %}{% include "partials/_listing_card.html" with listing=l owner=True %}{% endfor %}</div>
+{% else %}
+  <div class="empty-state">
+    <div class="empty-emoji">🏠</div>
+    <h2>No listings yet</h2>
+    {% if user.is_host %}
+      <p class="muted">Post your room and let the right people find you.</p>
+      <a class="btn btn-primary" href="{% url 'listings:create' %}">Post a room</a>
+    {% else %}
+      <p class="muted">You're set as a seeker. Switch to host in settings to post a room.</p>
+      <a class="btn btn-ghost" href="{% url 'accounts:settings' %}">Go to settings</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Page not found{% endblock %}
+{% block content %}
+<section class="empty-state big">
+  <div class="sad-cherry" aria-hidden="true">{% include "partials/_logo.html" %}</div>
+  <h1>404 — this room's been rented out</h1>
+  <p class="lead muted">The page you're looking for moved out without leaving a forwarding address. Rude, honestly.</p>
+  <div class="row gap wrap center-row">
+    <a class="btn btn-primary" href="{% url 'landing' %}">Take me home</a>
+    {% if user.is_authenticated %}<a class="btn btn-ghost" href="{% url 'matching:quick_pick' %}">Pick some cherries instead 🍒</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Verify your email{% endblock %}
+{% block content %}
+<section class="empty-state">
+  <div class="empty-emoji">✉️</div>
+  <h1>Check your inbox</h1>
+  <p class="lead muted">We sent a link to <b>{{ user.email }}</b>. Verify it to unlock Discover — it's how we keep the bots and time-wasters out.</p>
+  <p class="muted small">Running locally? The link is printed in the <code>runserver</code> terminal.</p>
+  <div class="row gap wrap center-row">
+    <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}
+      <button class="btn btn-primary" type="submit">Resend link</button>
+    </form>
+    <a class="btn btn-ghost" href="{% url 'accounts:onboarding_start' %}">Keep building my profile</a>
+  </div>
+</section>
+{% endblock %}
