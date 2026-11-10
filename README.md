@@ -77,6 +77,11 @@ phone, expose the dev server over HTTPS (for example `cloudflared tunnel --url h
 or `ngrok http 8000`) and add that host to `DJANGO_ALLOWED_HOSTS` (and `CSRF_TRUSTED_ORIGINS`).
 iPhone push needs iOS 16.4+ and the app installed to the Home Screen first.
 
+## Deploying
+
+- PythonAnywhere: step-by-step guide in [DEPLOY_PYTHONANYWHERE.md](DEPLOY_PYTHONANYWHERE.md).
+- Render: build command `./build.sh`, start command `gunicorn cheeripick.wsgi:application`.
+
 ## Maintenance commands
 
 - `python manage.py refresh_scores`: recompute profile completion and trust scores

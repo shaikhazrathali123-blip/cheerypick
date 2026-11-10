@@ -51,8 +51,12 @@ def notify(user, kind, title, body="", url="", group=""):
 
 def send_push_async(user_id, payload):
     subs = list(PushSubscription.objects.filter(user_id=user_id))
-    if subs:
+    if not subs:
+        return
+    if getattr(settings, "PUSH_IN_BACKGROUND", True):
         threading.Thread(target=_deliver, args=(subs, payload), daemon=True).start()
+    else:  # hosts without thread support (e.g. PythonAnywhere): send inline
+        _deliver(subs, payload)
 
 
 def _deliver(subs, payload):

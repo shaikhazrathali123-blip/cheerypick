@@ -23,6 +23,12 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1
 # Needed when serving over an HTTPS tunnel/domain, e.g. "https://abc.trycloudflare.com"
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
+# Render sets this automatically (e.g. "cheeripick.onrender.com")
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -41,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # serves /static/ in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -74,7 +81,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "cheeripick.wsgi.application"
 
 # --- Database --------------------------------------------------------------
-if os.getenv("DB_ENGINE", "sqlite").lower() in {"postgres", "postgresql"}:
+if os.getenv("DATABASE_URL"):
+    # Render / Heroku style: postgres://user:pass@host:5432/name
+    import dj_database_url
+
+    DATABASES = {"default": dj_database_url.config(conn_max_age=60, conn_health_checks=True)}
+elif os.getenv("DB_ENGINE", "sqlite").lower() in {"postgres", "postgresql"}:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -116,6 +128,13 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage" if DEBUG
+        else "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -134,9 +153,15 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", False)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 40 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
+# Serve uploaded photos from Django itself (fine for a small app). Off by default in production.
+SERVE_MEDIA = env_bool("SERVE_MEDIA", DEBUG)
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Render terminates HTTPS at its proxy; trust its header so links/redirects use https://
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # --- Google sign-in -------------------------------------------------------
@@ -153,6 +178,8 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
 VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:hello@cheeripick.local")
+# Set PUSH_IN_BACKGROUND=False on hosts whose web workers can't run threads (PythonAnywhere).
+PUSH_IN_BACKGROUND = env_bool("PUSH_IN_BACKGROUND", True)
 
 # --- CheeriPick knobs ------------------------------------------------------
 CHEERIPICK = {
